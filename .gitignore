@@ -1,0 +1,21 @@
+# 生成物（可随时用脚本重建，不入库）
+out/
+
+# 每月渲染出来的月相日历图（examples/ 里保留已审阅的成品）
+assets/moon-*.png
+
+# 格式样本：内嵌了 Star Walk 的月相截图（第三方图片），不随仓库分发。
+# 排版基准已实测保存为 tests/fixtures/sample-reference.json，
+# 没有这个 docx 时 test_format.py 自动改用那份基准。
+天象预报 2024年12月.docx
+
+# Python
+__pycache__/
+*.pyc
+
+# 测试临时文件
+tests/_tmp*
+
+# 系统
+Thumbs.db
+.DS_Store
