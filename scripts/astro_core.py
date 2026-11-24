@@ -627,7 +627,7 @@ def _fall_phrase(hours_after_sunset: float) -> str:
         return "夜半前后落下"
     if hours_after_sunset <= 10.0:
         return "后半夜落下"
-    return "几乎整夜可见"
+    return "通宵可见"
 
 
 def visibility_state(body: A.Body, date: A.Time, observer: A.Observer) -> dict:
@@ -641,27 +641,27 @@ def visibility_state(body: A.Body, date: A.Time, observer: A.Observer) -> dict:
     up_dawn = s["alt_dawn"] is not None and s["alt_dawn"] > 0
     if up_dusk and up_dawn:
         return {"kind": "allnight",
-                "text": f"日落后可见于{_az_name(s['az_dusk'])}方，几乎整夜可见"}
+                "text": f"入夜后在{_az_name(s['az_dusk'])}方，通宵可见"}
     if up_dusk:
         hours = s.get("hours_after_sunset")
-        tail = _fall_phrase(hours) if hours is not None else "入夜后落下"
+        tail = _fall_phrase(hours) if hours is not None else "随后落下"
         # 落下时刻晚到"几乎整夜"时，归为 allnight：这样月初/月末只是方位
         # 略变（东北→东）时不会写成两句，读者也不必被这种差别打扰
-        kind = "allnight" if tail == "几乎整夜可见" else "dusk"
+        kind = "allnight" if tail == "通宵可见" else "dusk"
         return {"kind": kind,
-                "text": f"日落后可见于{_az_name(s['az_dusk'])}方，{tail}"}
+                "text": f"日落后在{_az_name(s['az_dusk'])}方，{tail}"}
     if up_dawn:
         if s["rise_body"] is not None and s["az_rise"] is not None:
             hh = bjt(s["rise_body"]).hour
             az = _az_name(s["az_rise"])
             if hh >= 18 or hh == 0:
                 return {"kind": "dawn",
-                        "text": f"前半夜{hh}时前后升起于{az}方，后半夜一直可见"}
+                        "text": f"{hh}时前后自{az}方升起，此后一直可见"}
             if hh < 3:
                 return {"kind": "dawn",
-                        "text": f"凌晨{hh}时前后升起于{az}方，天亮前可见"}
-            return {"kind": "dawn", "text": f"日出前可见于{az}方"}
-        return {"kind": "dawn", "text": f"日出前可见于{_az_name(s['az_dawn'])}方"}
+                        "text": f"{hh}时前后自{az}方升起，天亮前可看"}
+            return {"kind": "dawn", "text": f"天亮前在{az}方低空"}
+        return {"kind": "dawn", "text": f"天亮前在{_az_name(s['az_dawn'])}方低空"}
     return {"kind": "none", "text": ""}
 
 

@@ -2,9 +2,9 @@
 name: auto-astro-calendar
 description: 生成任意年月的中文《天象预报 YYYY年M月》Word 文档，排版严格对齐工作目录下的样本（天象预报 2024年12月.docx）。内容由本机天文历算引擎算出，含推荐天象、主要天象清单、太阳系大天体动态、本月月相日历图与望远镜目标推荐。
 metadata:
-  compatibility: Windows / macOS / Linux；Python >= 3.10；依赖 astronomy-engine（Meeus 算法）、python-docx、Pillow。首次生成月相图需联网下载一次月面照片雪碧图，之后离线可用。
+  compatibility: Python >= 3.10；当前月相图字体查找仅实现 Windows，macOS / Linux 需适配字体路径，未完成跨平台验证；依赖 astronomy-engine（Meeus 算法）、python-docx、Pillow。首次生成月相图需联网下载一次月面照片雪碧图，之后离线可用。
   author: auto-astro-calendar
-  version: "1.0.0"
+  version: "1.1.0"
   language: zh-CN
 ---
 
@@ -25,7 +25,7 @@ python scripts/make_calendar.py --year 2026 --month 11 \
 
 产出三份：`out/天象预报 2026年11月.docx`（交付物）、同名 `.json`（本次用到的全部结构化事实，任何数字都能回溯）、同名 `.md`（纯文本版，便于 diff 与快速校对）。
 
-常用参数：`--city 北京 --lat 39.9042 --lon 116.4074`（方位与可见性口径）、`--venue-label 校内`（观测难度里"校内/郊区"那一档的写法——样本作者的"校内"指清华校园，评的是光污染）、`--highlights 5`（推荐天象条数，样本为 5）、`--out-dir`、`--stem`。不传 `--moon-image` 时文档里会留一句说明而不是插图。
+常用参数：`--city 北京 --lat 39.9042 --lon 116.4074`（方位与可见性口径）、`--venue-label 校内`（观测难度里"校内/郊区"那一档的写法——样张作者的"校内"指校园，评的是光污染）、`--highlights 5`（推荐天象条数，样本为 5）、`--out-dir`、`--stem`。不传 `--moon-image` 时文档里会留一句说明而不是插图。
 
 ## 月相日历图怎么办
 
@@ -43,7 +43,7 @@ python scripts/moon_grid.py --year 2026 --month 11 --out assets/moon-2026-11.png
 
 ## 格式契约（改排版前先读）
 
-样本的实测规格不是猜的，`tests/test_format.py` 会拿样本自己的文字重跑一遍生成器再逐项比对，**必须一直通过**：
+样本的实测规格不是猜的：`tests/test_format.py` 用一份**只含结构**的基准（段落角色序列、页面几何、样式数值）重跑生成器再逐项比对，**必须一直通过**；基准里不含任何第三方正文：
 
 | 项目 | 样本值 |
 |---|---|

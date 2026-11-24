@@ -268,13 +268,14 @@ def _moon_interference(year: int, month: int, day: int) -> tuple[float, str]:
     t = A.Time.Make(year, month, day, 14, 0, 0)      # BJT 22:00 前后近似
     k = A.Illumination(A.Body.Moon, t).phase_fraction
     if k >= 0.85:
-        note = "但今年极大恰逢满月前后，月色会淹没大部分暗弱流星，实际可见数量要打折扣。"
+        note = ("不过峰值夜正撞上望前后，月光会把暗弱流星洗掉大半，"
+                "实际能数到的比标称值少。")
     elif k >= 0.5:
-        note = "今年月光有一定干扰，不过晴朗夜空下仍能等到不少亮流星。"
+        note = "峰值夜有月光在场，亮流星仍然够看。"
     elif k >= 0.2:
-        note = "月光干扰不大，后半夜月落之后条件更好。"
+        note = "月光只占住一部分夜空，后半夜月落之后更清爽。"
     else:
-        note = "今年恰逢少月的夜晚，观测条件相当理想。"
+        note = "峰值夜接近无月，是很干净的一晚。"
     return k, note
 
 
@@ -433,8 +434,8 @@ def _recommend_stars(e: C.Event) -> int:
     return 2
 
 
-#: 观测难度里"校内/郊区"这一档说的其实是**光污染**：样本作者在清华，
-#: 所以"校内"= 清华校园（夜空亮、只能数亮流星），"郊区"= 校外暗处。
+#: 观测难度里"校内/郊区"这一档说的其实是**光污染**：样张作者的语境是
+#: 校园观测，所以"校内"= 校园（夜空亮、只能数亮流星），"郊区"= 校外暗处。
 #: 换观测地时用 --venue-label 改这个词（如"市区""校园"）。
 VENUE_LABEL = "校内"
 
@@ -485,19 +486,19 @@ def _hl_shower(e: C.Event, year: int, month: int, observer: A.Observer,
     _, moon_note = _moon_interference(year, month, day)
     radiant = _radiant_constellation(s.get("radiant_ra"), s.get("radiant_dec"))
     is_major = s.get("code") in MAJOR_SHOWERS
-    head = (f"{day}日，{name}将迎来今年的极大期。")
+    head = f"{name}的峰值落在{day}日。"
     if is_major:
-        head += "它与象限仪座流星雨、英仙座流星雨并称为北半球三大流星雨。"
-    body = (head + f"极大时每小时天顶流量可达{zhr}颗左右，"
-            f"流星速度约{s['velocity_km_s']} km/s，" if s.get("velocity_km_s")
-            else head + f"极大时每小时天顶流量可达{zhr}颗左右，")
-    body += moon_note
+        head += "这是北半球三大流星雨之一，另两个是象限仪座与英仙座。"
+    body = head + f"预报天顶每小时出现率约 {zhr} 颗"
+    if s.get("velocity_km_s"):
+        body += f"，流星速度约 {s['velocity_km_s']} km/s"
+    body += "。" + moon_note
     if s.get("parent"):
-        body += f"其母体是{s['parent']}。"
+        body += f"这批尘埃来自{s['parent']}。"
     # 观测时段：极大夜的整晚，取辐射点高度较好的时刻
     when = f"{day}日和{day+1}日21时后的整晚"
-    tip = (f"找一个开阔而黑暗的地段，面向{radiant or '辐射点'}附近天空耐心等待；"
-           f"肉眼即可计数，用相机长时间连拍有机会抓到亮流星。")
+    tip = (f"朝{radiant or '辐射点'}方向躺下来守候，挑视野开阔、离路灯远的位置；"
+           f"不需要设备，相机固定机位连拍可以留住偶发的亮流星。")
     return {
         "title": f"{name}极大", "body": body, "rarity": "每年一次",
         "recommend": _recommend_stars(e), "difficulty": _difficulty_stars(e, venue),
@@ -514,23 +515,22 @@ def _hl_opposition(e: C.Event, observer: A.Observer, city: str) -> dict:
                               C.month_range(C.bjt(e.time).year,
                                             C.bjt(e.time).month)[1])
     extra = {
-        "Jupiter": "低倍下可欣赏伽利略四大卫星排成一列，高倍下能记录表面云带与大红斑。",
-        "Saturn": "这是今年观察土星环倾角的最佳窗口，环面细节在高倍下最清楚。",
-        "Mars": "冲日前后火星视直径达到极大，高倍下可辨认极冠与大流沙暗区。",
-        "Uranus": "天王星冲日前后亮度约 5.7 等，在黑暗的郊外肉眼勉强可见。",
-        "Neptune": "海王星需要借助星图与望远镜，冲日是定位它最省事的时机。",
+        "Jupiter": "双筒里能看清四颗伽利略卫星排成一线，高倍下可见云带与大红斑。",
+        "Saturn": "这一轮正是观察土星环倾角的时机，高倍下环面细节最清楚。",
+        "Mars": "冲日期间火星视直径最大，高倍下能分辨极冠与暗区。",
+        "Uranus": "亮度约 5.7 等，在足够暗的郊外肉眼勉强能看见。",
+        "Neptune": "需要星图加望远镜，冲日是定位它最省事的时机。",
     }.get(name, "")
-    body = (f"{cn}季来了！本年的{cn}冲日在本月{day}日，冲日前后两个月里是观测"
-            f"{cn}的最佳时机，{cn}几乎整夜可见，同时亮度和大小也达到极值。"
-            f"视星等约{mags[0]:.1f}等，带上你的任何设备，准备寻找合适的地点"
-            f"进行目视观测/行星摄影吧！")
+    body = (f"{day}日{cn}到达冲日：它和太阳分居地球两侧，整夜都在地平线上，"
+            f"视直径与亮度也达到这一轮会合周期里的最好水平，"
+            f"目视星等约 {mags[0]:.1f} 等。前后各一个月都是观察它的窗口。")
     # 方位取"日落后"那一刻，不能取月初某个固定时刻——冲日时木星黄昏在东，
     # 半夜在南，"日落后位于西北方"这种错就是时刻取错造成的。
     start = C.month_range(C.bjt(e.time).year, C.bjt(e.time).month)[0]
     snap = C.night_snapshot(getattr(A.Body, name), start.AddDays(14), observer)
     az = snap["az_dusk"] if snap["az_dusk"] is not None else 180.0
     when = "本月夜晚几乎任何时间"
-    tip = (f"日落后{cn}位于{C._az_name(az)}方天空，找到当天最亮的那颗即可；{extra}")
+    tip = (f"{cn}入夜后出现在{C._az_name(az)}方，通常就是那片天区最亮的点；{extra}")
     return {
         "title": f"{cn}冲日", "body": body, "rarity": _synodic_text(name),
         "recommend": _recommend_stars(e), "difficulty": _difficulty_stars(e),
@@ -564,12 +564,12 @@ def _hl_elongation(e: C.Event, year: int, month: int,
         when = f"{day}日前后"
     dir_word = "西南" if east else "东南"
     phase = "日落后" if east else "日出前"
-    body = (f"一次还算可以的观测{cn}的机会。{cn}算得上明亮，但由于离太阳很近，"
-            f"多数时候都难以观测，但东大距或西大距前后则有机会看到它。"
-            f"没看过{cn}的朋友可以在这次{'东' if east else '西'}大距前后几天里，"
-            f"找一个晴朗无云的时段，面向{dir_word}方低空，试着寻找{cn}的踪影。")
-    tip = (f"面向{dir_word}低空，寻找一颗{'银白' if name == 'Mercury' else '极亮'}的亮星；"
-            f"时间窗口期很短，最好提前做好准备；使用双筒望远镜更容易看到。")
+    body = (f"{cn}平时紧贴太阳，很难从晨昏天光里分出来。{day}日前后它到达"
+            f"{'东' if east else '西'}大距，与太阳的角距拉开到约 "
+            f"{e.data['elongation']:.1f} 度，是这一轮里最容易被找到的窗口："
+            f"{phase}{dir_word}低空，肉眼就有机会看到。")
+    tip = (f"{phase}把视线压到{dir_word}方低空，找一颗不闪的亮白点；"
+            f"窗口只有几十分钟，建议提前踩点，双筒能明显提高把握。")
     return {
         "title": f"{cn}{'东' if east else '西'}大距", "body": body,
         "rarity": _synodic_text(name), "recommend": _recommend_stars(e),
@@ -598,13 +598,12 @@ def _hl_occultation(e: C.Event, city: str) -> dict:
     day = C.bjt(e.time).day
     tgt = e.label.replace("月掩", "")
     word = _time_of_day_word(e.time)
-    body = (f"{day}日{word}，月球将自西向东掠过{tgt}，"
-            f"把它的星光短暂遮去——这就是月掩{tgt}。"
-            f"由于月球离我们近，掩星的发生时刻与观测地点关系很大，"
-            f"不同城市看到的时刻会相差数分钟到数十分钟。")
+    body = (f"{day}日{word}，月球边缘会从{tgt}前面经过，把它的光遮住一段时间，"
+            f"这就是月掩{tgt}。月球视差大，各地看到掩入与掩出的时刻能差几分钟"
+            f"到几十分钟，越靠近预报地点越准。")
     when = f"{day}日{fmt_hm(e.time)}前后"
-    tip = (f"使用双筒望远镜或天文望远镜寻找{tgt}，用相机连拍可以记录掩入与掩出的全过程；"
-            f"提前记好时刻，看到星光突然消失/出现即为掩的瞬间。")
+    tip = (f"提前把望远镜对准{tgt}，盯住它就行：星光骤然消失是掩入，"
+            f"重新亮起是掩出。想留记录就开间隔连拍，事后能拼出光变过程。")
     return {
         "title": f"月掩{tgt}", "body": body, "rarity": "近年较常见（约1-4个月一次）",
         "recommend": _recommend_stars(e), "difficulty": _difficulty_stars(e),
@@ -645,25 +644,22 @@ def _hl_moon_planet(e: C.Event, city: str) -> dict:
     # 合月的精确时刻常在白天，样本的处理是"距离最近在凌晨，但当晚效果也不错"
     obs_t = _observable_moment(name, t, observer)
     if obs_t is None or abs(obs_t.tt - t.tt) < 0.02:
-        body = (f"本月{day}日{fmt_hm(t)}前后，{cn}与{phase_name}在天球上相合，"
-                f"两者中心相距约{fmt_angle(sep)}。{cn}足够明亮，"
-                f"与{phase_name}同框是很好拍的题材，"
-                f"顺带还可以把地景、薄云一起摄入画框。")
+        body = (f"{day}日{fmt_hm(t)}前后，{cn}与{phase_name}在天球上相合，"
+                f"中心相距约{fmt_angle(sep)}。一暗一亮凑在一处，构图很紧凑。")
         when = f"{day}日{fmt_hm(t)}前后"
         az, _ = C.horizon(getattr(A.Body, name), obs_t or t, observer)
         lead = f"面向{C._az_name(az)}方"
     else:
         d_obs = C.bjt(obs_t)
-        body = (f"虽然两者距离最近的时刻在{_time_of_day_word(t)}，"
-                f"但{day}日{'晚' if d_obs.hour >= 17 else '早'}上"
-                f"{fmt_hm(obs_t)}前后的效果也还算不错。{cn}足够明亮，"
-                f"与{phase_name}相距约{fmt_angle(sep)}，同框很好拍，"
-                f"顺带还可以将地景、薄云与归鸟等一起摄入画框。")
+        body = (f"两者最接近的时刻落在{_time_of_day_word(t)}，那时未必便于观看；"
+                f"改到{day}日{'晚' if d_obs.hour >= 17 else '早'}上"
+                f"{fmt_hm(obs_t)}前后，{cn}与{phase_name}相距约{fmt_angle(sep)}，"
+                f"画面依然紧凑。")
         when = f"{day}日{fmt_hm(obs_t)}前后"
         az, _ = C.horizon(getattr(A.Body, name), obs_t, observer)
         lead = f"面向{C._az_name(az)}方"
-    tip = (f"{lead}，先找到月亮，再在它附近寻找{cn}；"
-            f"使用双筒望远镜可以看得更清楚；相机广角到中焦都能拍到。")
+    tip = (f"{lead}先把月亮框进来，{cn}就在旁边不远处；"
+            f"双筒里看得更利落，广角到中焦都能拍。")
     return {
         "title": f"{cn}合月", "body": body, "rarity": "几乎每月一次",
         "recommend": _recommend_stars(e), "difficulty": _difficulty_stars(e),
@@ -724,15 +720,14 @@ def _hl_conjunction(e: C.Event, city: str) -> dict:
     day = C.bjt(e.time).day
     kind = e.data.get("kind")
     if kind == "inferior":
-        body = (f"{day}日{fmt_hm(e.time)}前后，{cn}运行到地球与太阳之间，"
-                f"称为下合日。此后{cn}从昏星变成晨星，"
-                f"日出前出现在东方低空。")
+        body = (f"{day}日{fmt_hm(e.time)}前后{cn}走到地球与太阳之间，即下合日。"
+                f"此后它由昏星转为晨星，天亮前出现在东方低空。")
     elif kind == "superior":
-        body = (f"{day}日{fmt_hm(e.time)}前后，{cn}运行到太阳背后，称为上合日。"
-                f"这段时间{cn}被阳光淹没，整月都不适合观测。")
+        body = (f"{day}日{fmt_hm(e.time)}前后{cn}绕到太阳背后，即上合日。"
+                f"这段时间它与太阳同升同落，整月无法观测。")
     else:
-        body = (f"{day}日{fmt_hm(e.time)}前后，{cn}与太阳同黄经，称为合日。"
-                f"合日前后{cn}淹没在阳光中，整月都不适合观测。")
+        body = (f"{day}日{fmt_hm(e.time)}前后{cn}与太阳同黄经，即合日。"
+                f"此时它淹没在阳光里，整月不适合观测。")
     return {
         "title": f"{cn}{'下合日' if kind == 'inferior' else '上合日' if kind == 'superior' else '合日'}",
         "body": body, "rarity": "约每13个月一次" if kind else _synodic_text(name),
@@ -806,15 +801,20 @@ def build_spec(year: int, month: int, *, city: str = CITY_DEFAULT,
                   for e in picked]
 
     title = f"天象预报 {year}年{month}月"
-    intro = (f"本次天象预报包括{month}.1-{month}.{days}日的主要天象以及观测推荐，"
-             f"挑出{len(highlights)}个最值得一看的目标，一起来看看吧！")
+    intro = (f"{year}年{month}月的夜空，从{month}.1 到 {month}.{days}："
+             f"下面按日列出主要天象与行星动态，另挑出 {len(highlights)} 项重点。"
+             f"时刻一律北京时间，方位按{city}计算。")
 
     return DocSpec(
         title=title, intro=intro, highlights=highlights, event_lines=lines,
         planet_lines=planet_lines,
-        ps_line="P.S.：如果有会占星的小伙伴，或许可以试着自己解读一下哦！",
+        ps_line="P.S.：各条事件的计算口径见 docs/CONVENTIONS.md；"
+                "与别的历表对照时，先确认口径是否一致。",
         moon_image=moon_image,
-        moon_caption=moon_caption or "（图源 NASA/Goddard 月面照片，本工具排版）",
+        # 图注只认调用方显式给的：脚本无法判断用户传进来的图从哪来，
+        # 替他们署名 NASA/Goddard 会造成错误署名（自制的图也会被冠上这个来源）。
+        # 没图时留空，交给 docx_writer 落"未附图"的说明。
+        moon_caption=moon_caption, 
         target_lines=target_lines(year, month),
     )
 

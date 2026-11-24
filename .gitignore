@@ -1,12 +1,20 @@
-# 生成物（可随时用脚本重建，不入库）
+# 生成物（随时可用脚本重建，不入库）
 out/
+dist/
 
-# 每月渲染出来的月相日历图（examples/ 里保留已审阅的成品）
+# 月面照片雪碧图：第三方站点素材，条款未核实，不随仓库分发。
+# 首次渲染月相图时由 scripts/moon_grid.py 自动下载到这里，之后离线可用。
+assets/phases.jpg
+
+# 渲染出来的月相日历图（示例里不放图，本地按需生成）
 assets/moon-*.png
+examples/*/moon-*.png
 
-# 格式样本：内嵌了 Star Walk 的月相截图（第三方图片），不随仓库分发。
-# 排版基准已实测保存为 tests/fixtures/sample-reference.json，
-# 没有这个 docx 时 test_format.py 自动改用那份基准。
+# 示例的结构化事实转储（生成物，正文已在 .md 里）
+examples/*/*.json
+
+# 原版排版样张：内嵌 Star Walk 截图，且文档属性含他人姓名与学号，不外发。
+# 版式特征已实测为 tests/fixtures/sample-reference.json，测试不依赖此文件。
 天象预报 2024年12月.docx
 
 # Python
@@ -19,6 +27,3 @@ tests/_tmp*
 # 系统
 Thumbs.db
 .DS_Store
-
-# ������dist/ �� git archive ���ɣ�����⣩
-dist/

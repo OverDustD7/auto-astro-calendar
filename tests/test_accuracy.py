@@ -153,7 +153,8 @@ def main() -> int:
         if hit:
             fails.append(f"不应出现：{body} 的 {kind}（计算给了 {len(hit)} 条）")
 
-    print(f"核对 {checked} 项，来自 4 个独立历表源（APX/NASA/TWT/NAOJ）")
+    # 主基准四家；HKO 与 IMO 只作旁证，不参与判定，故不计入"源"数
+    print(f"核对 {checked} 项，主基准 4 家（APX/NASA/TWT/NAOJ），另有 HKO/IMO 旁证")
     if fails:
         print("\n不一致：")
         for f in fails:

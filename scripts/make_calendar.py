@@ -90,11 +90,13 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--month", type=int, required=True)
     ap.add_argument("--city", default="北京")
     ap.add_argument("--venue-label", default="校内",
-                    help="观测难度里校园一档的叫法（默认 校内，指清华校园）")
+                    help="观测难度里校园一档的叫法（默认 校内，指校园环境）")
     ap.add_argument("--lat", type=float, default=None)
     ap.add_argument("--lon", type=float, default=None)
     ap.add_argument("--moon-image", type=Path, default=None,
                     help="已裁剪好的月相日历 PNG；缺省则留空并在文档里注明")
+    ap.add_argument("--moon-caption", default="",
+                    help="图注（含图源署名）。只由调用方给，脚本不替你猜来源")
     ap.add_argument("--highlights", type=int, default=5,
                     help="推荐天象条数（样本为 5）")
     ap.add_argument("--out-dir", type=Path, default=ROOT / "out")
@@ -110,9 +112,9 @@ def main(argv: list[str] | None = None) -> int:
     observer = A.Observer(lat, lon, 50.0)
 
     moon_image = args.moon_image
-    caption = ""
-    if moon_image is None:
-        caption = "（本月月相日历图未提供；可参考下方星座与相位时间）"
+    # 图注由调用方决定（--moon-caption）；没有图时留空，交给 docx_writer 的
+    # DEFAULT_NO_IMAGE_NOTE 统一措辞。
+    caption = args.moon_caption
     if moon_image is not None and not Path(moon_image).exists():
         print(f"月相图不存在：{moon_image}", file=sys.stderr)
         return 2

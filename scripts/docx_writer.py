@@ -31,6 +31,11 @@ from docx.shared import Cm, Pt
 TEXT_WIDTH_CM = 14.65
 #: 图片比版心略窄一点，避免 Word 因舍入把图挤到下一行
 IMAGE_WIDTH_CM = 14.6
+#: 没有提供月相图时写进文档的说明（否则"本月月相日历"会变成一个空章节）
+DEFAULT_NO_IMAGE_NOTE = (
+    "（本月未附月相日历图；需要图示时先运行 scripts/moon_grid.py 生成，"
+    "再把文件路径传给 --moon-image）"
+)
 
 
 def _set_normal(doc: Document) -> None:
@@ -197,6 +202,10 @@ def write_docx(spec: DocSpec, out_path: Path) -> Path:
         run.add_picture(str(spec.moon_image), width=Cm(IMAGE_WIDTH_CM))
         if spec.moon_caption:
             _para(doc, spec.moon_caption)
+    else:
+        # 没有图时不能只留一个标题了事——那会是一节空章节。
+        # 这里落一句说明，与 README / SKILL 的说法一致。
+        _para(doc, spec.moon_caption or DEFAULT_NO_IMAGE_NOTE)
     _para(doc)
 
     # --- 望远镜目标（样本用自动编号，正文里不写 "1."） ---
@@ -239,6 +248,8 @@ def dump_spec_text(spec: DocSpec) -> list[str]:
         out.append("<IMAGE>")
         if spec.moon_caption:
             out.append(spec.moon_caption)
+    else:
+        out.append(spec.moon_caption or DEFAULT_NO_IMAGE_NOTE)
     out.append("")
     out.append(h["targets"])
     out += spec.target_lines
